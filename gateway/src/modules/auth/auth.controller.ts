@@ -27,7 +27,7 @@ export class AuthController {
     try {
       return await lastValueFrom(this.client.send('register', dto));
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, error.status);
     }
   }
 
@@ -43,7 +43,7 @@ export class AuthController {
 
       return { message: 'Вход успешно выполнен' };
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
+      throw new HttpException(error.message, error.status);
     }
   }
 

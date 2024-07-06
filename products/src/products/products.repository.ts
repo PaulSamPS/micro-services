@@ -29,10 +29,28 @@ export class ProductsRepository {
   }
 
   async findOneByName(name: string): Promise<ProductsModel> {
-    return await this.productsModel.findOne({ where: { name } });
+    const product = await this.productsModel.findOne({ where: { name } });
+
+    if (!product) {
+      throw new RpcException({
+        message: 'Продукт не найден',
+        status: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    return product;
   }
   async findOneById(product_id: number): Promise<ProductsModel> {
-    return await this.productsModel.findByPk(product_id);
+    const product = await this.productsModel.findByPk(product_id);
+
+    if (!product) {
+      throw new RpcException({
+        message: 'Продукт не найден',
+        status: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    return product;
   }
 
   async create({ createProductDto, files }: CreateProductDto) {
@@ -42,7 +60,7 @@ export class ProductsRepository {
       if (existingProduct) {
         return {
           message: 'Товар с таким именем уже существует',
-          status: HttpStatus.CONFLICT,
+          statusCode: HttpStatus.CONFLICT,
         };
       }
       const images = await this.processProductImages(
@@ -62,9 +80,11 @@ export class ProductsRepository {
 
       return await product.save();
     } catch (error) {
-      throw new RpcException(
-        'Ошибка при создании продукта. Пожалуйста, попробуйте еще раз.',
-      );
+      throw new RpcException({
+        message:
+          'Ошибка при создании продукта. Пожалуйста, попробуйте еще раз.',
+        status: HttpStatus.BAD_REQUEST,
+      });
     }
   }
 
@@ -74,10 +94,6 @@ export class ProductsRepository {
     files,
   }: Partial<UpdateProductDto>) {
     const product = await this.findOneByName(productName);
-
-    if (!product) {
-      throw new RpcException('Продукт не найден');
-    }
 
     if (files.length > 0) {
       product.images = await this.processProductImages(product.name, files);

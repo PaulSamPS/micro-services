@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { UsersRepository } from '@/users/users.repository';
 import { UsersEntity } from '@/users/users.entity';
 import { UserRole } from '@/users/users.interface';
@@ -19,7 +19,10 @@ export class AuthService {
     const existedUser = await this.usersRepository.findOneByEmail(email);
 
     if (existedUser) {
-      throw new RpcException('Пользователь с таким email уже существует');
+      throw new RpcException({
+        message: 'Пользователь с таким email уже существует',
+        status: HttpStatus.CONFLICT,
+      });
     }
 
     const newUserEntity = await new UsersEntity({
@@ -35,7 +38,10 @@ export class AuthService {
     const existingUser = await this.usersRepository.findOneByEmail(dto.email);
 
     if (!existingUser) {
-      throw new RpcException('Пользователь c таким email не найден');
+      throw new RpcException({
+        message: 'Пользователь c таким email не найден',
+        status: HttpStatus.NOT_FOUND,
+      });
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -44,7 +50,10 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      throw new RpcException('Неверный пароль.');
+      throw new RpcException({
+        message: 'Неверный пароль.',
+        status: HttpStatus.BAD_REQUEST,
+      });
     }
 
     const tokens = await this.jwtTokenService.generateJwtToken({

@@ -62,7 +62,7 @@ export class ProductsController {
         }),
       );
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error.message, error.status);
     }
   }
 
