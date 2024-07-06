@@ -33,9 +33,9 @@ export class ProductsController {
     return await this.productsRepository.getAll(query);
   }
 
-  @Get(':name')
-  findOne(@Param('name') name: string) {
-    return this.productsRepository.findOneByName(name);
+  @EventPattern('one-product')
+  async findOne(productName: string) {
+    return await this.productsRepository.findOneByName(productName);
   }
 
   @UseGuards(JwtAuthGuard)

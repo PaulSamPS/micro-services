@@ -70,4 +70,13 @@ export class ProductsController {
   async getAll(@Query() query: IProductsQuery) {
     return await lastValueFrom(this.client.send('all-products', query));
   }
+
+  @Get(':productName')
+  async getOne(@Param('productName') productName: string) {
+    try {
+      return await lastValueFrom(this.client.send('one-product', productName));
+    } catch (error) {
+      throw new HttpException(error.message, error.status);
+    }
+  }
 }

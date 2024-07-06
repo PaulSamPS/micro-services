@@ -128,4 +128,8 @@ export class ProductsRepository {
 
     return { count: products.rows.length, products: products.rows };
   }
+
+  async getOne(productName: string) {
+    return await this.findOneByName(productName);
+  }
 }
