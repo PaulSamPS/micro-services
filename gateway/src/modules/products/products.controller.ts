@@ -1,12 +1,14 @@
 import {
   Body,
   Controller,
+  Get,
   HttpException,
   HttpStatus,
   Inject,
   Param,
   Patch,
   Post,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -19,6 +21,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { CreateProductDto } from './dto/create-product.dto';
 import { lastValueFrom } from 'rxjs';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { IProductsQuery } from './products.interface';
 
 @Controller('products')
 export class ProductsController {
@@ -61,5 +64,10 @@ export class ProductsController {
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  @Get()
+  async getAll(@Query() query: IProductsQuery) {
+    return await lastValueFrom(this.client.send('all-products', query));
   }
 }

@@ -13,3 +13,8 @@ export interface IProduct {
   description: string;
   rating: number;
 }
+
+export interface IProductsQuery {
+  limit: string;
+  offset: string;
+}

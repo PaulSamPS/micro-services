@@ -7,6 +7,7 @@ import { FilesService } from '@/files';
 import { calculateDiscount } from '@/lib/calculate-discount';
 import { ReceivedFile } from '@/files/files.interface';
 import { RpcException } from '@nestjs/microservices';
+import { IProductsQuery } from '@/products/products.interface';
 
 @Injectable()
 export class ProductsRepository {
@@ -97,5 +98,18 @@ export class ProductsRepository {
     product.rating = rating;
 
     return await product.save();
+  }
+
+  async getAll(query: IProductsQuery) {
+    const limit = +query.limit || 10;
+    const offset = +query.offset || 0;
+
+    const products = await this.productsModel.findAndCountAll({
+      limit,
+      offset,
+      order: [['id', 'ASC']],
+    });
+
+    return { count: products.rows.length, products: products.rows };
   }
 }
