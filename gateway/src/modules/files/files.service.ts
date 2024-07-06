@@ -4,8 +4,7 @@ import { path } from 'app-root-path';
 import { emptyDir, ensureDir, writeFile } from 'fs-extra';
 import { MFile } from './mfile.class';
 import * as sharp from 'sharp';
-import * as uuid from 'uuid';
-import { ReceivedFile } from '@/files/files.interface';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class FilesService {
@@ -19,7 +18,7 @@ export class FilesService {
     const res: FileElementResponse[] = [];
 
     for (const file of files) {
-      const fileName = `${uuid.v4().split('.')[0]}.${file.originalname
+      const fileName = `${randomUUID().split('.')[0]}.${file.originalname
         .split('.')
         .pop()}`;
       const buffer = await sharp(file.buffer).toBuffer();
@@ -33,16 +32,15 @@ export class FilesService {
     return res;
   }
 
-  private async convertToWebp(files: ReceivedFile[]): Promise<MFile[]> {
+  private async convertToWebp(files: Express.Multer.File[]): Promise<MFile[]> {
     const imagesArr: MFile[] = [];
     for (const file of files) {
       if (file.mimetype && file.mimetype.includes('image')) {
-        const fileName = `${uuid.v4().split('.')[0]}.webp`;
-        const buffer = Buffer.from(file.buffer.data);
-        const processedBuffer = await sharp(buffer).webp().toBuffer();
+        const fileName = `${randomUUID().split('.')[0]}.webp`;
+        const buffer = await sharp(file.buffer).webp().toBuffer();
         imagesArr.push({
           originalname: fileName,
-          buffer: processedBuffer,
+          buffer: buffer,
         });
       }
     }
@@ -61,7 +59,7 @@ export class FilesService {
     const uploadFolder = `${path}/uploads/${folder}/${name}`;
     await ensureDir(uploadFolder);
 
-    const fileName = `${uuid.v4().split('.')[0]}.${file.originalname
+    const fileName = `${randomUUID().split('.')[0]}.${file.originalname
       .split('.')
       .pop()}`;
     const buffer = await sharp(file.buffer).toBuffer();
@@ -75,7 +73,7 @@ export class FilesService {
 
   private async convertToWebpOne(file: Express.Multer.File[]): Promise<MFile> {
     if (file[0].mimetype && file[0].mimetype.includes('image')) {
-      const fileName = `${uuid.v4().split('.')[0]}.webp`;
+      const fileName = `${randomUUID().split('.')[0]}.webp`;
       const buffer = await sharp(file[0].buffer).webp().toBuffer();
       return {
         originalname: fileName,
@@ -95,7 +93,7 @@ export class FilesService {
   }
 
   async processAndSaveImages(
-    file: ReceivedFile[],
+    file: Express.Multer.File[],
     name: string,
     folder: string,
   ): Promise<FileElementResponse[]> {

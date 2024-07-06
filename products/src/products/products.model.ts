@@ -12,13 +12,13 @@ export class ProductsModel extends Model implements IProduct {
   @Column({ type: DataType.STRING, allowNull: false })
   description: string;
 
-  @Column({ type: DataType.INTEGER, defaultValue: null })
+  @Column({ type: DataType.INTEGER, defaultValue: 0 })
   discount: number;
 
   @Column({ type: DataType.JSONB, allowNull: false })
   images: IImg[];
 
-  @Column({ type: DataType.INTEGER, defaultValue: null })
+  @Column({ type: DataType.INTEGER, defaultValue: 0 })
   old_price: number;
 
   @Column({ type: DataType.INTEGER })

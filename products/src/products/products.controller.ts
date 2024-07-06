@@ -1,35 +1,26 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
   Delete,
   UseGuards,
-  UseInterceptors,
-  UploadedFiles,
 } from '@nestjs/common';
 import { ProductsRepository } from './products.repository';
 import { JwtAuthGuard } from '@/guards/jwt.guard';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { AdminGuard } from '@/guards/admin.guard';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { EventPattern } from '@nestjs/microservices';
 
-@Controller('product')
+@Controller()
 export class ProductsController {
   constructor(private readonly productsRepository: ProductsRepository) {}
 
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(AdminGuard)
-  @UseInterceptors(FilesInterceptor('images'))
-  @Post()
-  create(
-    @Body() createProductDto: CreateProductDto,
-    @UploadedFiles() files: Express.Multer.File[],
-  ) {
-    return this.productsRepository.create(createProductDto, files);
+  @EventPattern('create-product')
+  async create(createProductDto: CreateProductDto) {
+    return await this.productsRepository.create(createProductDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -46,11 +37,11 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard)
   @UseGuards(AdminGuard)
   @Patch(':id')
-  update(
+  async update(
     @Param('name') name: string,
-    @Body() updateProductDto: UpdateProductDto,
+    @Body() updateProductDto: Partial<UpdateProductDto>,
   ) {
-    return 'id';
+    return await this.productsRepository.update(name, updateProductDto);
   }
 
   @UseGuards(JwtAuthGuard)

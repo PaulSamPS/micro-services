@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { UpdateProductDto } from '@/products/dto/update-product.dto';
 import { FilesService } from '@/files';
 import { calculateDiscount } from '@/lib/calculate-discount';
+import { ReceivedFile } from '@/files/files.interface';
 
 @Injectable()
 export class ProductsRepository {
@@ -15,12 +16,12 @@ export class ProductsRepository {
   ) {}
 
   private async processProductImages(
-    productDto: CreateProductDto | UpdateProductDto,
-    files: Express.Multer.File[],
+    productName: string,
+    files: ReceivedFile[],
   ) {
     return this.fileService.processAndSaveImages(
       files,
-      productDto.name,
+      productName,
       'products',
     );
   }
@@ -32,10 +33,7 @@ export class ProductsRepository {
     return await this.productsModel.findByPk(product_id);
   }
 
-  async create(
-    createProductDto: CreateProductDto,
-    files: Express.Multer.File[],
-  ) {
+  async create({ createProductDto, files }: CreateProductDto) {
     try {
       const existingProduct = await this.findOneByName(createProductDto.name);
 
@@ -45,8 +43,10 @@ export class ProductsRepository {
           status: HttpStatus.CONFLICT,
         };
       }
-
-      const images = await this.processProductImages(createProductDto, files);
+      const images = await this.processProductImages(
+        createProductDto.name,
+        files,
+      );
 
       const product = new ProductsModel({
         ...createProductDto,
@@ -69,12 +69,16 @@ export class ProductsRepository {
     }
   }
 
-  async update(name: string, updateProductDto: UpdateProductDto) {
+  async update(name: string, updateProductDto: Partial<UpdateProductDto>) {
     const product = await this.findOneByName(name);
 
     if (!product) {
       throw new HttpException('Продукт не найден', HttpStatus.BAD_REQUEST);
     }
+
+    await product.update(updateProductDto);
+
+    return product;
   }
 
   async changeRating(product_id: number, rating: number) {

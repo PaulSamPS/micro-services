@@ -3,18 +3,25 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { UsersRepository } from '@/users/users.repository';
-import { IUser, UserRole } from '@/users/users.interface';
+import { ConfigService } from '@nestjs/config';
+
+type IDecodeToken = {
+  user: {
+    role: string;
+    id: number;
+  };
+};
 
 @Injectable()
 export class AdminGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly usersRepository: UsersRepository,
+    private readonly configService: ConfigService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -25,21 +32,19 @@ export class AdminGuard implements CanActivate {
       throw new UnauthorizedException('Токен не найден.');
     }
 
-    let decodedToken: Pick<IUser, 'role' | 'id' | 'email'>;
+    let decodedToken: IDecodeToken;
 
     try {
-      decodedToken = this.jwtService.verify(token);
+      decodedToken = this.jwtService.verify(token, {
+        secret: this.getJwtSecretAccess(),
+      });
     } catch (err) {
       throw new UnauthorizedException('Невалидный токен.');
     }
 
-    const user = await this.usersRepository.findOneById(decodedToken.id);
+    console.log(decodedToken);
 
-    if (!user) {
-      throw new UnauthorizedException('Пользователь не найден.');
-    }
-
-    if (user.role !== UserRole.Admin) {
+    if (decodedToken.user.role !== 'Admin') {
       throw new ForbiddenException('Доступ запрещен.');
     }
 
@@ -48,5 +53,15 @@ export class AdminGuard implements CanActivate {
 
   private extractTokenFromCookie(request: Request): string | null {
     return request.cookies.auth_access || null;
+  }
+
+  private getJwtSecretAccess(): string {
+    const secret = this.configService.get<string>('JWT_SECRET_ACCESS') || '';
+    if (!secret) {
+      throw new InternalServerErrorException(
+        'Секрет JWT для access токена не найден в конфигурации.',
+      );
+    }
+    return secret;
   }
 }

@@ -1,19 +1,23 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as cookieParser from 'cookie-parser';
-import { ConfigService } from '@nestjs/config';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const configService = app.get(ConfigService);
 
-  app.setGlobalPrefix('api');
-  app.use(cookieParser(configService.get<string>('SECRET_COOKIE')));
-
-  app.enableCors({
-    credentials: true,
-    origin: configService.get<string>('BASE_URL'),
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: ['amqp://localhost:5672'],
+      queue: 'products_queue',
+      queueOptions: {
+        durable: false,
+      },
+    },
   });
-  await app.listen(3001);
+
+  await app.startAllMicroservices();
+  Logger.log(`🚀 Application is running`);
 }
 bootstrap();

@@ -1,11 +1,7 @@
-import { IImg, IProduct } from '../products.interface';
+import { IProduct } from '../products.interface';
+import { ReceivedFile } from '@/files/files.interface';
 
-export class CreateProductDto implements IProduct {
-  description: string;
-  discount: number;
-  images: IImg[];
-  name: string;
-  old_price: number;
-  price: number;
-  rating: number;
+export class CreateProductDto {
+  createProductDto: Omit<IProduct, 'images' | 'id'>;
+  files: ReceivedFile[];
 }

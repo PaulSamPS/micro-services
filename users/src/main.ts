@@ -1,14 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ConfigService } from '@nestjs/config';
-import * as cookieParser from 'cookie-parser';
-import * as dotenv from 'dotenv';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const configService = app.get(ConfigService);
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
@@ -22,6 +18,6 @@ async function bootstrap() {
   });
 
   await app.startAllMicroservices();
-  Logger.log(`🚀 Application is running`);
+  Logger.log(`🚀 Application users is running`);
 }
 bootstrap();
