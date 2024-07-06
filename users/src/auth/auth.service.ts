@@ -1,9 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UsersRepository } from '@/users/users.repository';
 import { UsersEntity } from '@/users/users.entity';
 import { UserRole } from '@/users/users.interface';
@@ -24,10 +19,7 @@ export class AuthService {
     const existedUser = await this.usersRepository.findOneByEmail(email);
 
     if (existedUser) {
-      throw new HttpException(
-        'Пользователь с таким email уже существует',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new RpcException('Пользователь с таким email уже существует');
     }
 
     const newUserEntity = await new UsersEntity({
@@ -43,7 +35,7 @@ export class AuthService {
     const existingUser = await this.usersRepository.findOneByEmail(dto.email);
 
     if (!existingUser) {
-      throw new RpcException('Пользователь не найден');
+      throw new RpcException('Пользователь c таким email не найден');
     }
 
     const isPasswordValid = await bcrypt.compare(

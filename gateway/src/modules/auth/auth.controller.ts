@@ -24,7 +24,11 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() dto: RegisterDto) {
-    return this.client.send('register', dto);
+    try {
+      return await lastValueFrom(this.client.send('register', dto));
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   @Post('login')

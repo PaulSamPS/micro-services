@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, Delete, UseGuards } from '@nestjs/common';
 import { ProductsRepository } from './products.repository';
 import { JwtAuthGuard } from '@/guards/jwt.guard';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -23,6 +15,11 @@ export class ProductsController {
     return await this.productsRepository.create(createProductDto);
   }
 
+  @EventPattern('update-product')
+  async update(updateProductDto: Partial<UpdateProductDto>) {
+    return await this.productsRepository.update(updateProductDto);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
@@ -32,16 +29,6 @@ export class ProductsController {
   @Get(':name')
   findOne(@Param('name') name: string) {
     return this.productsRepository.findOneByName(name);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(AdminGuard)
-  @Patch(':id')
-  async update(
-    @Param('name') name: string,
-    @Body() updateProductDto: Partial<UpdateProductDto>,
-  ) {
-    return await this.productsRepository.update(name, updateProductDto);
   }
 
   @UseGuards(JwtAuthGuard)

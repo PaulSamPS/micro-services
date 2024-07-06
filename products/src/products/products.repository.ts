@@ -6,6 +6,7 @@ import { UpdateProductDto } from '@/products/dto/update-product.dto';
 import { FilesService } from '@/files';
 import { calculateDiscount } from '@/lib/calculate-discount';
 import { ReceivedFile } from '@/files/files.interface';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class ProductsRepository {
@@ -60,25 +61,30 @@ export class ProductsRepository {
 
       return await product.save();
     } catch (error) {
-      console.error('Ошибка при создании продукта:', error);
-
-      throw new HttpException(
+      throw new RpcException(
         'Ошибка при создании продукта. Пожалуйста, попробуйте еще раз.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
-  async update(name: string, updateProductDto: Partial<UpdateProductDto>) {
-    const product = await this.findOneByName(name);
+  async update({
+    productName,
+    updateProductDto,
+    files,
+  }: Partial<UpdateProductDto>) {
+    const product = await this.findOneByName(productName);
 
     if (!product) {
-      throw new HttpException('Продукт не найден', HttpStatus.BAD_REQUEST);
+      throw new RpcException('Продукт не найден');
     }
 
-    await product.update(updateProductDto);
+    if (files.length > 0) {
+      product.images = await this.processProductImages(product.name, files);
+    }
 
-    return product;
+    Object.assign(product, updateProductDto);
+
+    return product.save();
   }
 
   async changeRating(product_id: number, rating: number) {
