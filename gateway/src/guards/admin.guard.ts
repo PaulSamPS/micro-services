@@ -42,8 +42,6 @@ export class AdminGuard implements CanActivate {
       throw new UnauthorizedException('Невалидный токен.');
     }
 
-    console.log(decodedToken);
-
     if (decodedToken.user.role !== 'Admin') {
       throw new ForbiddenException('Доступ запрещен.');
     }
