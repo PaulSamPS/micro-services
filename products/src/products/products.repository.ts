@@ -40,18 +40,6 @@ export class ProductsRepository {
 
     return product;
   }
-  async findOneById(product_id: number): Promise<ProductsModel> {
-    const product = await this.productsModel.findByPk(product_id);
-
-    if (!product) {
-      throw new RpcException({
-        message: 'Продукт не найден',
-        status: HttpStatus.NOT_FOUND,
-      });
-    }
-
-    return product;
-  }
 
   async create({ createProductDto, files }: CreateProductDto) {
     try {
@@ -104,18 +92,6 @@ export class ProductsRepository {
     return product.save();
   }
 
-  async changeRating(product_id: number, rating: number) {
-    const product = await this.findOneById(product_id);
-
-    if (!product) {
-      throw new HttpException('Продукт не найден', HttpStatus.BAD_REQUEST);
-    }
-
-    product.rating = rating;
-
-    return await product.save();
-  }
-
   async getAll(query: IProductsQuery) {
     const limit = +query.limit || 10;
     const offset = +query.offset || 0;
@@ -131,5 +107,17 @@ export class ProductsRepository {
 
   async getOne(productName: string) {
     return await this.findOneByName(productName);
+  }
+
+  async delete(id: number) {
+    try {
+      await this.productsModel.destroy({ where: { id } });
+      return { message: 'Продукт удален' };
+    } catch (error) {
+      throw new RpcException({
+        message: 'Ошибка удаления продукта',
+        status: HttpStatus.BAD_REQUEST,
+      });
+    }
   }
 }

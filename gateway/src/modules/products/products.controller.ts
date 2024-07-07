@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -75,6 +76,17 @@ export class ProductsController {
   async getOne(@Param('productName') productName: string) {
     try {
       return await lastValueFrom(this.client.send('one-product', productName));
+    } catch (error) {
+      throw new HttpException(error.message, error.status);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminGuard)
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    try {
+      return await lastValueFrom(this.client.send('delete-product', id));
     } catch (error) {
       throw new HttpException(error.message, error.status);
     }
