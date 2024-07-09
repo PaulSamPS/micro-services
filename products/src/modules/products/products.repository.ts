@@ -41,6 +41,19 @@ export class ProductsRepository {
     return product;
   }
 
+  async findOneById(id: number): Promise<ProductsModel> {
+    const product = await this.productsModel.findByPk(id);
+
+    if (!product) {
+      throw new RpcException({
+        message: 'Продукт не найден',
+        status: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    return product;
+  }
+
   async create({ createProductDto, files }: CreateProductDto) {
     try {
       const existingProduct = await this.findOneByName(createProductDto.name);
@@ -119,5 +132,26 @@ export class ProductsRepository {
         status: HttpStatus.BAD_REQUEST,
       });
     }
+  }
+
+  // Todo сделать высчитывание рейтинга после отзыва
+  async generateRating(productId: number) {
+    const product = await this.productsModel.findOne({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      throw new RpcException({
+        message: 'Продукт не найден',
+        status: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    const totalReviews = productReviews.count;
+    const totalRating = productReviews.rows.reduce(
+      (sum, item) => sum + item.rating,
+      0,
+    );
+    const newRating = ((totalRating + rating) / (totalReviews + 1)).toFixed(1);
   }
 }

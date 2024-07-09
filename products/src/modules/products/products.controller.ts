@@ -1,11 +1,11 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { ProductsRepository } from './products.repository';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { IProductsQuery } from '@/products/products.interface';
 
-@Controller()
+@Controller('products')
 export class ProductsController {
   constructor(private readonly productsRepository: ProductsRepository) {}
 
@@ -25,12 +25,21 @@ export class ProductsController {
   }
 
   @EventPattern('one-product')
-  async findOne(@Payload() productName: string) {
+  async findOne(
+    @Payload() productName: string,
+    @Param('product') product: string,
+  ) {
+    await this.productsRepository.findOneByName(product);
     return await this.productsRepository.findOneByName(productName);
   }
 
   @EventPattern('delete-product')
   async delete(@Payload() id: number) {
     return await this.productsRepository.delete(id);
+  }
+
+  @Get(':productId')
+  async getOneById(@Param('productId') productId: number) {
+    return await this.productsRepository.findOneById(productId);
   }
 }
