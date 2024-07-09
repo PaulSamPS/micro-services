@@ -5,7 +5,7 @@ import { emptyDir, ensureDir, writeFile } from 'fs-extra';
 import { MFile } from './mfile.class';
 import * as sharp from 'sharp';
 import * as uuid from 'uuid';
-import { ReceivedFile } from '@/files/files.interface';
+import { ReceivedFile } from '@/modules/files/files.interface';
 
 @Injectable()
 export class FilesService {
