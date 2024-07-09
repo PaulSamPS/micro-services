@@ -1,13 +1,13 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { ProductsModel } from '@/products/products.model';
-import { CreateProductDto } from '@/products/dto/create-product.dto';
+import { ProductsModel } from '@/modules/products/products.model';
+import { CreateProductDto } from '@/modules/products/dto/create-product.dto';
 import { InjectModel } from '@nestjs/sequelize';
-import { UpdateProductDto } from '@/products/dto/update-product.dto';
-import { FilesService } from '@/files';
+import { UpdateProductDto } from '@/modules/products/dto/update-product.dto';
+import { FilesService } from 'src/modules/files';
 import { calculateDiscount } from '@/lib/calculate-discount';
-import { ReceivedFile } from '@/files/files.interface';
+import { ReceivedFile } from '@/modules/files/files.interface';
 import { RpcException } from '@nestjs/microservices';
-import { IProductsQuery } from '@/products/products.interface';
+import { IProductsQuery } from '@/modules/products/products.interface';
 
 @Injectable()
 export class ProductsRepository {
@@ -134,11 +134,13 @@ export class ProductsRepository {
     }
   }
 
-  // Todo сделать высчитывание рейтинга после отзыва
-  async generateRating(productId: number) {
-    const product = await this.productsModel.findOne({
-      where: { id: productId },
-    });
+  async generateProductRating(
+    productId: number,
+    rating: number,
+    totalReviews: number,
+    totalRating: number,
+  ) {
+    const product = await this.findOneById(productId);
 
     if (!product) {
       throw new RpcException({
@@ -147,11 +149,12 @@ export class ProductsRepository {
       });
     }
 
-    const totalReviews = productReviews.count;
-    const totalRating = productReviews.rows.reduce(
-      (sum, item) => sum + item.rating,
-      0,
-    );
     const newRating = ((totalRating + rating) / (totalReviews + 1)).toFixed(1);
+
+    product.rating = Number(newRating);
+
+    await product.save();
+
+    return { message: 'Рейтинг обновлен' };
   }
 }

@@ -16,7 +16,7 @@ import { lastValueFrom } from 'rxjs';
 import { Response as ExpressResponse } from 'express';
 import { setAuthCookie } from '../../lib/set-auth-cookie';
 import { ILoginResponseType } from './login-response.type';
-import { Cookies } from '../../lib/coockie.decorator';
+import { Cookies } from '../../decorators/coockie.decorator';
 
 @Controller('auth')
 export class AuthController {

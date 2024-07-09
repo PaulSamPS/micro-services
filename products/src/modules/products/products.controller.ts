@@ -3,7 +3,7 @@ import { ProductsRepository } from './products.repository';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { EventPattern, Payload } from '@nestjs/microservices';
-import { IProductsQuery } from '@/products/products.interface';
+import { IProductsQuery } from '@/modules/products/products.interface';
 
 @Controller('products')
 export class ProductsController {
