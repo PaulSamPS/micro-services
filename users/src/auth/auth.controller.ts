@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { EventPattern } from '@nestjs/microservices';
+import { EventPattern, Payload } from '@nestjs/microservices';
 import { JwtTokenService } from '@/tokens/jwt-token.service';
 
 @Controller()
@@ -13,17 +13,17 @@ export class AuthController {
   ) {}
 
   @EventPattern('register')
-  async register(dto: RegisterDto) {
+  async register(@Payload() dto: RegisterDto) {
     return await this.authService.register(dto);
   }
 
   @EventPattern('login')
-  async login(dto: LoginDto) {
+  async login(@Payload() dto: LoginDto) {
     return await this.authService.login(dto);
   }
 
   @EventPattern('refresh-token')
-  async refreshToken(_refreshToken: string) {
+  async refreshToken(@Payload() _refreshToken: string) {
     return await this.jwtTokenService.refreshTokens(_refreshToken);
   }
 }

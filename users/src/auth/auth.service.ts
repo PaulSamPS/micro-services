@@ -60,8 +60,6 @@ export class AuthService {
       user: { id: existingUser.id, role: existingUser.role },
     });
 
-    return {
-      tokens,
-    };
+    return tokens;
   }
 }

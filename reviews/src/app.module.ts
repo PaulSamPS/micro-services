@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { dbConfig, SequelizeConfig } from './config';
 import { SequelizeModule } from '@nestjs/sequelize';
+import { ReviewModule } from './modules/review/review.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
     SequelizeModule.forRootAsync({
       useClass: SequelizeConfig,
     }),
+    ReviewModule,
   ],
 })
 export class AppModule {}

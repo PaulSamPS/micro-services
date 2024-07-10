@@ -1,16 +1,25 @@
 import { ReviewModel } from './review.model';
 import { InjectModel } from '@nestjs/sequelize';
-import { ReviewsDtoCreate } from './dto/review.dto';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common';
+import { IQuery } from './review.interface';
+import { RpcException } from '@nestjs/microservices';
+import { CreateReviewDto } from './dto/create-review.dto';
 
 export class ReviewRepository {
   constructor(
     @InjectModel(ReviewModel) private readonly reviewsModel: typeof ReviewModel,
   ) {}
 
-  async create(reviewsDtoCreate: ReviewsDtoCreate) {
-    const { productId, userId, firstName, lastName, rating, review } =
-      reviewsDtoCreate;
+  async create(createReviewDto: CreateReviewDto) {
+    if (!createReviewDto) {
+      throw new RpcException({
+        message: 'Не переденны нужные данные',
+        status: HttpStatus.CONFLICT,
+      });
+    }
+
+    const { productId, userId, firstName, lastName, rating, text } =
+      createReviewDto;
 
     // Проверяем, оставлял ли пользователь уже отзыв о данном товаре
     const existingReview = await this.reviewsModel.findOne({
@@ -18,10 +27,10 @@ export class ReviewRepository {
     });
 
     if (existingReview) {
-      throw new HttpException(
-        'Вы уже оставляли отзыв о данном товаре',
-        HttpStatus.CONFLICT,
-      );
+      throw new RpcException({
+        message: 'Вы уже оставляли отзыв о данном товаре',
+        status: HttpStatus.CONFLICT,
+      });
     }
 
     try {
@@ -32,7 +41,7 @@ export class ReviewRepository {
         firstName,
         lastName,
         rating,
-        review,
+        text,
         approved: false,
       });
       return {
@@ -40,10 +49,33 @@ export class ReviewRepository {
           'Отзыв будет опубликован после проверки модератором. Спасибо за отзыв',
       };
     } catch (error) {
-      throw new HttpException(
-        'Внутренняя ошибка сервера при создании отзыва',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new RpcException({
+        message: 'Внутренняя ошибка сервера при создании отзыва',
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
+  }
+
+  async findAll(productId: number, query: IQuery) {
+    const limit = +query.limit || 10;
+    const offset = +query.offset || 0;
+
+    const reviews = await this.reviewsModel.findAndCountAll({
+      where: { productId },
+      limit,
+      offset,
+      order: [['rating', 'DESC']],
+    });
+
+    if (reviews.rows.length <= 0) {
+      throw new RpcException({
+        message: 'Отзывы не найдены',
+        status: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    const { count, rows } = reviews;
+
+    return { reviews: rows, count };
   }
 }

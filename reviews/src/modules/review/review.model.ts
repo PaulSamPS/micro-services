@@ -18,7 +18,7 @@ export class ReviewModel extends Model<ReviewModel> {
   rating: number;
 
   @Column({ type: DataType.TEXT })
-  review: string;
+  text: string;
 
   @Column({ defaultValue: false })
   approved: boolean;

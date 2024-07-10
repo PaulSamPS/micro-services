@@ -1,15 +1,12 @@
 import { Module } from '@nestjs/common';
-import { ReviewService } from './review.service';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { ReviewModel } from '@/modules/review/review.model';
-import { ReviewController } from '@/modules/review/review.controller';
-import { ProductsModule } from '@/modules/product';
-import { JwtService } from '@nestjs/jwt';
+import { ReviewModel } from './review.model';
+import { ReviewController } from './review.controller';
+import { ReviewRepository } from './review.repository';
 
 @Module({
-  imports: [SequelizeModule.forFeature([ReviewModel]), ProductsModule],
-  providers: [ReviewService, JwtService],
+  imports: [SequelizeModule.forFeature([ReviewModel])],
+  providers: [ReviewRepository],
   controllers: [ReviewController],
-  exports: [ReviewService],
 })
 export class ReviewModule {}
