@@ -6,9 +6,8 @@ import {
   IsPositive,
   IsString,
 } from 'class-validator';
-import { IReview } from '../review.interface';
 
-export class CreateReviewDto implements IReview {
+export class CreateReviewDto {
   @IsBoolean()
   @IsOptional()
   approved: boolean;

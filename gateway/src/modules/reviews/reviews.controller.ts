@@ -25,10 +25,9 @@ export class ReviewsController {
   @Post()
   @UseInterceptors(ErrorInterceptor)
   async create(@Body() createReviewDto: CreateReviewDto) {
-    console.log(createReviewDto);
-    // return await lastValueFrom(
-    //   this.client.send('create_review', createReviewDto),
-    // );
+    return await lastValueFrom(
+      this.client.send('create_review', createReviewDto),
+    );
   }
 
   @Get(':productId')
