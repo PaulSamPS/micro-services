@@ -1,60 +1,56 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { CreateReviewDto } from './dto/create-review.dto';
+import { InjectModel } from '@nestjs/sequelize';
+import { Op } from 'sequelize';
+import { ReviewModel } from './review.model';
+import { ReviewsDtoCreate } from './dto/review.dto';
+import axios, { AxiosResponse } from 'axios';
 import { RpcException } from '@nestjs/microservices';
-import { IPaginationQuery } from './pagination-query.interface';
-import { ReviewRepository } from './review.repository';
+import { IProduct } from './products.interface';
 
 @Injectable()
 export class ReviewService {
-  constructor(private readonly reviewRepository: ReviewRepository) {}
+  constructor(
+    @InjectModel(ReviewModel)
+    private reviewsModel: typeof ReviewModel,
+  ) {}
 
-  async createReview(createReviewDto: CreateReviewDto) {
-    const existingReview = await this.reviewRepository.findByProductIdAndUserId(
-      createReviewDto.productId,
-      createReviewDto.userId,
-    );
-
-    if (existingReview) {
-      throw new RpcException({
-        message: 'Вы уже оставляли отзыв о данном товаре',
-        status: HttpStatus.CONFLICT,
-      });
-    }
-
-    try {
-      await this.reviewRepository.save(createReviewDto);
-
-      return {
-        message:
-          'Отзыв будет опубликован после проверки модератором. Спасибо за отзыв',
-      };
-    } catch (error) {
-      throw new RpcException({
-        message: 'Внутренняя ошибка сервера при создании отзыва',
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-      });
-    }
+  async topProducts() {
+    return await this.reviewsModel.findAll({
+      where: { rating: { [Op.gt]: 4 } },
+    });
   }
 
-  async findReviews(productId: number, query: IPaginationQuery) {
-    const limit = +query.limit || 10;
-    const offset = +query.offset || 0;
+  async findAll(product: number) {
+    const reviews = await this.fetchReviews(product);
 
-    const reviews = await this.reviewRepository.findByProductId(
-      productId,
-      limit,
-      offset,
-    );
-
-    if (reviews.rows.length <= 0) {
-      throw new RpcException({
-        message: 'Отзывы не найдены',
-        status: HttpStatus.NOT_FOUND,
-      });
+    if (!reviews) {
+      return this.noReviewsFoundResponse();
     }
 
     const { count, rows } = reviews;
+    const averageRating = this.calculateRating(rows, count);
+    const sortedReviews = this.sortReviewsByRating(rows);
 
-    return { reviews: rows, count };
+    return { sortedReviews, count, averageRating };
+  }
+
+  private async fetchReviews(productId: number) {
+    return await this.reviewsModel.findAndCountAll({ where: { productId } });
+  }
+
+  private noReviewsFoundResponse() {
+    return {
+      message: 'Пока еще никто не оставил отзыв',
+      status: HttpStatus.CONFLICT,
+    };
+  }
+
+  private calculateRating(reviews: ReviewModel[], count: number) {
+    const totalRating = reviews.reduce((sum, item) => sum + item.rating, 0);
+    return (totalRating / count).toFixed(1);
+  }
+
+  private sortReviewsByRating(reviews: ReviewModel[]) {
+    return reviews.sort((a, b) => b.rating - a.rating);
   }
 }

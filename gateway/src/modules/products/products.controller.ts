@@ -23,7 +23,6 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { lastValueFrom } from 'rxjs';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { IProductsQuery } from './products.interface';
-import { ErrorInterceptor } from '../../interceptors/error-interceptor';
 
 @Controller('products')
 export class ProductsController {
@@ -31,52 +30,65 @@ export class ProductsController {
 
   @UseGuards(JwtAuthGuard)
   @UseGuards(AdminGuard)
-  @UseInterceptors(FilesInterceptor('images'), ErrorInterceptor)
+  @UseInterceptors(FilesInterceptor('images'))
   @Post()
   async create(
     @Body() createProductDto: CreateProductDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return await lastValueFrom(
-      this.client.send('create-product', { createProductDto, files }),
-    );
+    try {
+      return await lastValueFrom(
+        this.client.send('create-product', { createProductDto, files }),
+      );
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
   @UseGuards(AdminGuard)
-  @UseInterceptors(FilesInterceptor('images'), ErrorInterceptor)
+  @UseInterceptors(FilesInterceptor('images'))
   @Patch(':productName')
   async update(
     @Param('productName') productName: string,
     @Body() updateProductDto: UpdateProductDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return await lastValueFrom(
-      this.client.send('update-product', {
-        productName,
-        updateProductDto,
-        files,
-      }),
-    );
+    try {
+      return await lastValueFrom(
+        this.client.send('update-product', {
+          productName,
+          updateProductDto,
+          files,
+        }),
+      );
+    } catch (error) {
+      throw new HttpException(error.message, error.status);
+    }
   }
 
   @Get()
-  @UseInterceptors(ErrorInterceptor)
   async getAll(@Query() query: IProductsQuery) {
     return await lastValueFrom(this.client.send('all-products', query));
   }
 
   @Get(':productName')
-  @UseInterceptors(ErrorInterceptor)
   async getOne(@Param('productName') productName: string) {
-    return await lastValueFrom(this.client.send('one-product', productName));
+    try {
+      return await lastValueFrom(this.client.send('one-product', productName));
+    } catch (error) {
+      throw new HttpException(error.message, error.status);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
   @UseGuards(AdminGuard)
   @Delete(':id')
-  @UseInterceptors(ErrorInterceptor)
   async remove(@Param('id') id: string) {
-    return await lastValueFrom(this.client.send('delete-product', id));
+    try {
+      return await lastValueFrom(this.client.send('delete-product', id));
+    } catch (error) {
+      throw new HttpException(error.message, error.status);
+    }
   }
 }

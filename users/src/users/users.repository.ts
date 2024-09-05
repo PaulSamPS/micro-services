@@ -1,9 +1,8 @@
 import { UsersModel } from './users.model';
 import { InjectModel } from '@nestjs/sequelize';
 import { Injectable } from '@nestjs/common';
-import { UsersEntity } from './users.entity';
 import { JwtTokenService } from '@/tokens/jwt-token.service';
-import { UserRole } from '@/users/users.interface';
+import { IUser, UserRole } from '@/users/users.interface';
 
 @Injectable()
 export class UsersRepository {
@@ -16,14 +15,19 @@ export class UsersRepository {
     return this.userModel.findByPk(id);
   }
 
+  async findOneByVkId(vk_id: string) {
+    return this.userModel.findOne({ where: { vk_id } });
+  }
+
   async findOneByEmail(email: string) {
     return this.userModel.findOne({ where: { email } });
   }
 
-  async createUser(user: UsersEntity) {
+  async createUser(user: IUser) {
     const newUserEntity = new UsersModel({
       email: user.email,
       password: user.password,
+      vk_id: user.vk_id || null,
       role: UserRole.User,
     });
 

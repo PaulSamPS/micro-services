@@ -1,22 +1,28 @@
-import { Controller } from '@nestjs/common';
-import { EventPattern, Payload } from '@nestjs/microservices';
-import { CreateReviewDto } from './dto/create-review.dto';
-import { IPaginationQuery } from './pagination-query.interface';
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+} from '@nestjs/common';
+import { ReviewsDtoCreate } from './dto/review.dto';
 import { ReviewService } from './review.service';
 
-@Controller()
+@Controller('reviews')
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
-
-  @EventPattern('create_review')
-  async createFeatures(@Payload() createReviewDto: CreateReviewDto) {
-    return await this.reviewService.createReview(createReviewDto);
+  @Post('/create')
+  @HttpCode(HttpStatus.CREATED)
+  @Header('Content-type', 'application/json')
+  async createFeatures(@Body() reviewsDtoCreate: ReviewsDtoCreate) {
+    return this.reviewService.create(reviewsDtoCreate);
   }
 
-  @EventPattern('get_all_product_reviews')
-  async getAll(
-    @Payload() data: { productId: number; query: IPaginationQuery },
-  ) {
-    return await this.reviewService.findReviews(data.productId, data.query);
+  @Get(':product')
+  getAll(@Param('product') product: number) {
+    return this.reviewService.findAll(product);
   }
 }

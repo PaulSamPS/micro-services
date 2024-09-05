@@ -12,6 +12,9 @@ export class UsersModel extends Model implements IUser {
   @Column({ type: DataType.STRING })
   password: string;
 
+  @Column({ type: DataType.STRING, defaultValue: false })
+  vk_id: string;
+
   @Column({
     type: DataType.STRING,
     defaultValue: UserRole.User,
